@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encuesta de Diagnóstico Organizacional y Tecnológico</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* ================= ESTILOS DE LA INTERFAZ ================= */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --bg-body: #f1f5f9;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      background: var(--bg-body);
+      background-image: radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 50%);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 30px 20px;
+      margin: 0;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .app-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 0;
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    
+    .app-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 35px 40px;
+      text-align: center;
+    }
+    
+    .app-header h1 {
+      color: #fff;
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+    
+    .app-header p {
+      color: rgba(255,255,255,0.85);
+      margin: 0;
+      font-size: 14px;
+    }
+    
+    .app-content {
+      padding: 30px 40px 40px;
+    }
+    
+    .form-section {
+      margin-bottom: 32px;
+      padding: 24px;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: box-shadow 0.2s ease;
+    }
+    
+    .form-section:hover {
+      box-shadow: var(--shadow);
+    }
+    
+    .sec-title {
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .sec-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    .q-row {
+      margin-bottom: 20px;
+    }
+    
+    .q-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    
+    .inp-text, .inp-textarea, .inp-date {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+      transition: all 0.2s ease;
+      color: var(--text);
+    }
+    
+    .inp-text:focus, .inp-textarea:focus, .inp-date:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+    
+    .inp-textarea {
+      min-height: 80px;
+      resize: none;
+      overflow: hidden;
+      line-height: 1.6;
+    }
+    
+    .radio-set {
+      display: flex;
+      gap: 24px;
+      margin-top: 10px;
+    }
+    
+    .radio-set label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: 2px solid var(--border);
+    }
+    
+    .radio-set label:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+    
+    .radio-set input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .footer-section {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 30px 40px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .footer-grid label {
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .footer-grid input {
+      border: none;
+      border-bottom: 2px solid var(--border);
+      background: transparent;
+      padding: 10px 0;
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--text);
+      transition: border-color 0.2s ease;
+      border-radius: 0;
+    }
+    
+    .footer-grid input:focus {
+      outline: none;
+      border-bottom-color: var(--primary);
+    }
+    
+    .conf-note {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: var(--primary-light);
+      font-size: 12px;
+      color: var(--text-muted);
+      border-radius: 8px;
+      line-height: 1.6;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .conf-note strong {
+      color: var(--primary);
+    }
+    
+    .btn-export {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 35px auto 0;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+    
+    .btn-export:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    }
+    
+    .btn-export:active {
+      transform: translateY(0);
+    }
+    
+    .btn-export:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    @media (max-width: 640px) {
+      body { padding: 15px 10px; }
+      .app-header { padding: 25px 20px; }
+      .app-header h1 { font-size: 20px; }
+      .app-content { padding: 20px; }
+      .form-section { padding: 20px; }
+      .radio-set { flex-direction: column; gap: 10px; }
+      .footer-section { padding: 20px; }
+    }
+
+    /* ================= ESTILOS DE LA PLANTILLA PDF ================= */
+    #pdf-template {
+      position: fixed; top: -9999px; left: 0;
+      width: 210mm; min-height: 297mm; padding: 18mm;
+      background: #fff; font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 11pt; line-height: 1.5; color: #222;
+      box-sizing: border-box;
+    }
+    
+    .pdf-hdr { 
+      text-align: center; margin-bottom: 25px; 
+      border-bottom: 3px solid #1e3a8a; padding-bottom: 15px; 
+    }
+    .pdf-hdr h1 { 
+      font-size: 20pt; margin: 0; letter-spacing: 2px; 
+      color: #1e3a8a; text-transform: uppercase; font-weight: 700;
+    }
+    .pdf-hdr h2 { 
+      font-size: 13pt; margin: 8px 0 0; font-weight: normal; 
+      color: #555; font-style: italic;
+    }
+    .pdf-hdr .pdf-date {
+      margin-top: 10px; font-size: 10pt; color: #666;
+    }
+    
+    .pdf-sec { margin-top: 20px; page-break-inside: avoid; }
+    .pdf-sec-title { 
+      background: #1e3a8a;
+      color: white; padding: 10px 16px; font-weight: bold; 
+      font-size: 12pt; border-left: none; margin-bottom: 16px; 
+      page-break-after: avoid; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    
+    .pdf-q { margin-bottom: 16px; page-break-inside: avoid; }
+    .pdf-q-title { 
+      font-weight: bold; margin-bottom: 6px; font-size: 11pt; 
+      color: #1e3a8a;
+    }
+    .pdf-a { 
+      border-left: 3px solid #e2e8f0; 
+      min-height: 28px; padding: 8px 12px; 
+      font-size: 10.5pt; color: #333; 
+      white-space: pre-wrap; word-break: break-word;
+      background: #f8fafc; border-radius: 0 4px 4px 0;
+    }
+    .pdf-a:empty::before {
+      content: "— Sin respuesta —"; color: #94a3b8; font-style: italic;
+    }
+    
+    .pdf-chk { display: inline-flex; align-items: center; gap: 8px; margin: 0 24px 0 0; font-size: 11pt; }
+    .pdf-chk-box { 
+      width: 18px; height: 18px; border: 2px solid #1e3a8a; 
+      display: inline-block; text-align: center; line-height: 17px; 
+      font-size: 11px; border-radius: 4px; background: #fff;
+    }
+    .pdf-chk-box.filled { background: #1e3a8a; border-color: #1e3a8a; }
+    .pdf-chk-box.filled::after { content: "✓"; color: white; font-weight: bold; }
+    .pdf-chk.selected span:last-child { color: #1e3a8a; font-weight: bold; }
+    
+    .pdf-footer { 
+      margin-top: 30px; border-top: 2px solid #1e3a8a; 
+      padding-top: 18px; 
+    }
+    .pdf-footer-grid {
+      display: grid; grid-template-columns: 1fr 1fr; 
+      gap: 15px 40px;
+    }
+    .pdf-f-item { 
+      border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; 
+      min-height: 24px;
+    }
+    .pdf-f-item strong { 
+      color: #1e3a8a; margin-right: 8px; font-size: 10pt;
+    }
+    .pdf-f-item span { font-size: 10pt; color: #333; }
+    
+    .pdf-note { 
+      margin-top: 20px; font-size: 9pt; color: #555; 
+      font-style: italic; border: 1px solid #cbd5e1; 
+      padding: 12px; background: #f1f5f9; border-radius: 4px;
+    }
+    .pdf-note strong { color: #1e3a8a; }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrap">
+    <div class="app-header">
+      <h1>Encuesta de Diagnóstico Organizacional y Tecnológico</h1>
+      <p>Levantamiento de información para análisis y desarrollo del sistema</p>
+    </div>
+    <div class="app-content">
+      <form id="survey-form" autocomplete="off">
+      <!-- I PARTE -->
+      <div class="form-section">
+        <div class="sec-title">I PARTE. DESCRIPCIÓN DEL CONTEXTO (Dimensión Organizacional)</div>
+        <div class="q-row"><label class="q-label">Reseña Histórica: ¿Cómo fueron los inicios de la empresa en 2015 en la zona de Pavía y cómo lograron consolidar su base de más de 5000 clientes?</label><textarea name="p1_1" data-target="pdf-q1_1" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Encargo Social: ¿De qué manera brindan actualmente soluciones prácticas y herramientas tecnológicas a los estudiantes y profesionales de la comunidad?</label><textarea name="p1_2" data-target="pdf-q1_2" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Objetivos Estratégicos: ¿Qué metas tienen para estabilizar las ventas locales y lograr el crecimiento regional mediante la innovación de sus procesos comerciales?</label><textarea name="p1_3" data-target="pdf-q1_3" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Procesos Comerciales: Considerando que ofrecen desde artículos de papelería hasta servicios legales y de ciber, ¿cómo priorizan actualmente la atención entre la venta de productos físicos y la prestación de servicios tecnológicos?</label><textarea name="p1_4" data-target="pdf-q1_4" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Estructura de Ventas: Con una base de más de 5000 clientes, ¿qué porcentaje de sus transacciones diarias corresponde a servicios de ciber frente a la venta de suministros de oficina?</label><textarea name="p1_5" data-target="pdf-q1_5" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Personal Responsable: ¿Cómo se dividirán las responsabilidades de carga de datos en el sistema entre los dueños, el vendedor y el técnico?</label><textarea name="p1_6" data-target="pdf-q1_6" required class="inp-textarea"></textarea></div>
+      </div>
+
+      <!-- II PARTE (Radios) -->
+      <div class="form-section">
+        <div class="sec-title">II PARTE. DIAGNÓSTICO TECNOLÓGICO (Dimensión Tecnológica)</div>
+        <div class="q-row"><label class="q-label">¿Se cuenta con un inventario de todos los equipos tecnológicos?</label><div class="radio-set"><label><input type="radio" name="p2_1" value="Sí" data-target="pdf-c2_1-si" required> Sí</label><label><input type="radio" name="p2_1" value="No" data-target="pdf-c2_1-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Se posee registro de fallas detectadas en los equipos?</label><div class="radio-set"><label><input type="radio" name="p2_2" value="Sí" data-target="pdf-c2_2-si" required> Sí</label><label><input type="radio" name="p2_2" value="No" data-target="pdf-c2_2-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Se cuenta con servicio de mantenimiento para todos los equipos?</label><div class="radio-set"><label><input type="radio" name="p2_3" value="Sí" data-target="pdf-c2_3-si" required> Sí</label><label><input type="radio" name="p2_3" value="No" data-target="pdf-c2_3-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Poseen los equipos capacidad de procesamiento para un servidor local de base de datos?</label><div class="radio-set"><label><input type="radio" name="p2_4" value="Sí" data-target="pdf-c2_4-si" required> Sí</label><label><input type="radio" name="p2_4" value="No" data-target="pdf-c2_4-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Cuentan con periféricos de facturación (impresoras térmicas/fiscales)?</label><div class="radio-set"><label><input type="radio" name="p2_5" value="Sí" data-target="pdf-c2_5-si" required> Sí</label><label><input type="radio" name="p2_5" value="No" data-target="pdf-c2_5-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿La infraestructura de red actual permite la conexión simultánea de las estaciones de trabajo con el servidor?</label><div class="radio-set"><label><input type="radio" name="p2_6" value="Sí" data-target="pdf-c2_6-si" required> Sí</label><label><input type="radio" name="p2_6" value="No" data-target="pdf-c2_6-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Se posee algún sistema de gestión para los procesos comerciales del negocio?</label><div class="radio-set"><label><input type="radio" name="p2_7" value="Sí" data-target="pdf-c2_7-si" required> Sí</label><label><input type="radio" name="p2_7" value="No" data-target="pdf-c2_7-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">¿Se cuenta con servicio de alojamiento o proveedores de ISP?</label><div class="radio-set"><label><input type="radio" name="p2_8" value="Sí" data-target="pdf-c2_8-si" required> Sí</label><label><input type="radio" name="p2_8" value="No" data-target="pdf-c2_8-no"> No</label></div></div>
+      </div>
+
+      <!-- III PARTE -->
+      <div class="form-section">
+        <div class="sec-title">III PARTE. DIAGNÓSTICO DEL SISTEMA ACTUAL (Dimensión Procesamiento de Datos)</div>
+        <div class="q-row"><label class="q-label">Manejo de Información: ¿Cómo considera usted la forma en que actualmente se maneja la información en formatos digitales?</label><textarea name="p3_1" data-target="pdf-q3_1" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Gestión de Inventario: ¿Qué método utilizan actualmente para registrar la entrada de mercancía de papelería y bisutería?</label><textarea name="p3_2" data-target="pdf-q3_2" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Control de Cyber: ¿Cómo contabilizan el tiempo de uso de internet y los servicios de impresión de cada cliente en la actualidad?</label><textarea name="p3_3" data-target="pdf-q3_3" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Relación con Proveedores: ¿Cómo llevan el control de las cuentas por pagar y los pedidos pendientes con sus proveedores?</label><textarea name="p3_4" data-target="pdf-q3_4" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Toma de Decisiones: ¿Cómo calculan hoy sus márgenes de ganancia mensuales y cuáles son sus productos más vendidos sin contar con herramientas estadísticas automáticas?</label><textarea name="p3_5" data-target="pdf-q3_5" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Entrada de Información: ¿Cuál es la entrada de información al proceso (facturas, notas de pedido, datos de ciber)?</label><textarea name="p3_6" data-target="pdf-q3_6" required class="inp-textarea"></textarea></div>
+      </div>
+
+      <!-- IV PARTE -->
+      <div class="form-section">
+        <div class="sec-title">IV. DIAGNÓSTICO DE LA PROBLEMÁTICA</div>
+        <div class="q-row"><label class="q-label">Cuellos de Botella: ¿Cuánto tiempo promedio pierde el personal en el conteo manual de inventario o en la facturación manual en horas pico?</label><textarea name="p4_1" data-target="pdf-q4_1" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Errores Identificados: ¿Se han presentado pérdidas económicas por errores en el cálculo de servicios de ciber o por fugas en el inventario de artículos pequeños?</label><textarea name="p4_2" data-target="pdf-q4_2" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Dificultades de Registro: ¿Qué problemas enfrentan con relación al registro y seguimiento digital eficiente de sus activos?</label><textarea name="p4_3" data-target="pdf-q4_3" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Limitaciones de Software: ¿Qué dificultades enfrentan al no poseer una herramienta que centralice la gestión administrativa y operativa en un solo lugar?</label><textarea name="p4_4" data-target="pdf-q4_4" required class="inp-textarea"></textarea></div>
+      </div>
+
+      <!-- V PARTE -->
+      <div class="form-section">
+        <div class="sec-title">V. DIAGNÓSTICO PARA LA PROPUESTA (Viabilidad de Módulos)</div>
+        <div class="q-row"><label class="q-label">Módulo de Facturación e Inventario: ¿Desean que el sistema descuente automáticamente el stock al momento de vender un artículo escolar o tecnológico?</label><div class="radio-set"><label><input type="radio" name="p5_1" value="Sí" data-target="pdf-c5_1-si" required> Sí</label><label><input type="radio" name="p5_1" value="No" data-target="pdf-c5_1-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">Módulo de Cyber Control: ¿Es viable para su operatividad que el sistema bloquee o habilite las estaciones de trabajo de forma remota?</label><div class="radio-set"><label><input type="radio" name="p5_2" value="Sí" data-target="pdf-c5_2-si" required> Sí</label><label><input type="radio" name="p5_2" value="No" data-target="pdf-c5_2-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">Gestión de Proveedores: ¿Requieren un módulo que genere alertas automáticas cuando el stock de un producto llegue a un nivel crítico?</label><div class="radio-set"><label><input type="radio" name="p5_3" value="Sí" data-target="pdf-c5_3-si" required> Sí</label><label><input type="radio" name="p5_3" value="No" data-target="pdf-c5_3-no"> No</label></div></div>
+        <div class="q-row"><label class="q-label">Dashboard de Estadísticas: ¿Qué indicadores les gustaría visualizar en tiempo real (ventas diarias, horas de mayor afluencia, deudas)?</label><textarea name="p5_4" data-target="pdf-q5_4" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Acceso a la Información: ¿Cómo debería ser el nivel de acceso (total para dueños, parcial para vendedores, limitado para proveedores)?</label><textarea name="p5_5" data-target="pdf-q5_5" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Capacitación y Alfabetización: ¿Está el personal comprometido a participar en talleres de formación intensivos para el manejo de este nuevo sistema de gestión?</label><div class="radio-set"><label><input type="radio" name="p5_6" value="Sí" data-target="pdf-c5_6-si" required> Sí</label><label><input type="radio" name="p5_6" value="No" data-target="pdf-c5_6-no"> No</label></div></div>
+      </div>
+
+      <!-- SECCIONES FINALES -->
+      <div class="form-section">
+        <div class="sec-title">Procesos y Responsables</div>
+        <div class="q-row"><label class="q-label">Procesos Comerciales: ¿Cómo priorizan actualmente la atención entre la venta de productos físicos y la prestación de servicios tecnológicos?</label><textarea name="pr_1" data-target="pdf-qpr_1" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Estructura de Ventas: ¿Qué porcentaje de sus transacciones diarias corresponde a servicios de "cyber" frente a la venta de suministros?</label><textarea name="pr_2" data-target="pdf-qpr_2" required class="inp-textarea"></textarea></div>
+        <div class="q-row"><label class="q-label">Personal Responsable: ¿Cómo se dividirían las responsabilidades de carga de datos en el sistema entre los dueños, el vendedor y el técnico?</label><textarea name="pr_3" data-target="pdf-qpr_3" required class="inp-textarea"></textarea></div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title">Sistemas Actuales</div>
+        <div class="q-row"><label class="q-label">Enliste y describa los sistemas informáticos que utilizan actualmente en sus procesos productivos y comerciales.</label><textarea name="sa_1" data-target="pdf-qsa_1" required class="inp-textarea" rows="4"></textarea></div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title">Servicios Ofertados</div>
+        <div class="q-row"><label class="q-label">Venta de artículos varios:</label><textarea name="so_1" data-target="pdf-qso_1" required class="inp-textarea" rows="2"></textarea></div>
+        <div class="q-row"><label class="q-label">Cyber:</label><textarea name="so_2" data-target="pdf-qso_2" required class="inp-textarea" rows="2"></textarea></div>
+        <div class="q-row"><label class="q-label">Asesoría Legal o documental:</label><textarea name="so_3" data-target="pdf-qso_3" required class="inp-textarea" rows="2"></textarea></div>
+      </div>
+
+      <div class="form-section">
+        <div class="sec-title">Requisitos del Sistema</div>
+        <div class="q-row"><label class="q-label">Describa en sus propias palabras los requisitos y necesidades que considera necesarios en el sistema informático que se desarrollará para su comunidad.</label><textarea name="req_1" data-target="pdf-qreq_1" required class="inp-textarea" rows="4"></textarea></div>
+      </div>
+
+      <div class="footer-section">
+        <div class="footer-grid">
+          <label>Nombre del Encuestado: <input type="text" name="nombre" data-target="pdf-fnombre" required></label>
+          <label>Fecha de la encuesta: <input type="date" name="fecha" data-target="pdf-ffecha" required></label>
+          <label>Encuestador: <input type="text" name="encuestador" data-target="pdf-fencuestador" required></label>
+          <label>Firma del Encuestado: <input type="text" name="firma" data-target="pdf-ffirma" required></label>
+        </div>
+        <div class="conf-note"><strong>Nota de Confidencialidad:</strong> Toda la información recopilada será tratada de manera confidencial y utilizada exclusivamente para el análisis y desarrollo del sistema.</div>
+      </div>
+    </form>
+
+    <button type="button" class="btn-export" id="btn-export" onclick="exportPDF()">📄 Exportar a PDF</button>
+    </div>
+  </div>
+
+  <!-- ================= PLANTILLA OCULTA PARA PDF ================= -->
+  <div id="pdf-template">
+    <div class="pdf-hdr">
+      <h1>LEVANTAMIENTO DE INFORMACIÓN</h1>
+      <h2>Encuesta de Diagnóstico Organizacional y Tecnológico</h2>
+      <div class="pdf-date" id="pdf-fecha-display"></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">I PARTE. DESCRIPCIÓN DEL CONTEXTO (Dimensión Organizacional)</div>
+      <div class="pdf-q"><div class="pdf-q-title">Reseña Histórica: ¿Cómo fueron los inicios de la empresa en 2015 en la zona de Pavía y cómo lograron consolidar su base de más de 5000 clientes?</div><div class="pdf-a" id="pdf-q1_1"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Encargo Social: ¿De qué manera brindan actualmente soluciones prácticas y herramientas tecnológicas a los estudiantes y profesionales de la comunidad?</div><div class="pdf-a" id="pdf-q1_2"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Objetivos Estratégicos: ¿Qué metas tienen para estabilizar las ventas locales y lograr el crecimiento regional mediante la innovación de sus procesos comerciales?</div><div class="pdf-a" id="pdf-q1_3"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Procesos Comerciales: Considerando que ofrecen desde artículos de papelería hasta servicios legales y de ciber, ¿cómo priorizan actualmente la atención entre la venta de productos físicos y la prestación de servicios tecnológicos?</div><div class="pdf-a" id="pdf-q1_4"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Estructura de Ventas: Con una base de más de 5000 clientes, ¿qué porcentaje de sus transacciones diarias corresponde a servicios de ciber frente a la venta de suministros de oficina?</div><div class="pdf-a" id="pdf-q1_5"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Personal Responsable: ¿Cómo se dividirán las responsabilidades de carga de datos en el sistema entre los dueños, el vendedor y el técnico?</div><div class="pdf-a" id="pdf-q1_6"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">II PARTE. DIAGNÓSTICO TECNOLÓGICO (Dimensión Tecnológica)</div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Se cuenta con un inventario de todos los equipos tecnológicos?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_1-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_1-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Se posee registro de fallas detectadas en los equipos?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_2-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_2-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Se cuenta con servicio de mantenimiento para todos los equipos?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_3-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_3-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Poseen los equipos capacidad de procesamiento para un servidor local de base de datos?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_4-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_4-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Cuentan con periféricos de facturación (impresoras térmicas/fiscales)?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_5-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_5-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿La infraestructura de red actual permite la conexión simultánea de las estaciones de trabajo con el servidor?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_6-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_6-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Se posee algún sistema de gestión para los procesos comerciales del negocio?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_7-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_7-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">¿Se cuenta con servicio de alojamiento o proveedores de ISP?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_8-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c2_8-no"></span> No</span></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">III PARTE. DIAGNÓSTICO DEL SISTEMA ACTUAL (Dimensión Procesamiento de Datos)</div>
+      <div class="pdf-q"><div class="pdf-q-title">Manejo de Información: ¿Cómo considera usted la forma en que actualmente se maneja la información en formatos digitales?</div><div class="pdf-a" id="pdf-q3_1"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Gestión de Inventario: ¿Qué método utilizan actualmente para registrar la entrada de mercancía de papelería y bisutería?</div><div class="pdf-a" id="pdf-q3_2"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Control de Cyber: ¿Cómo contabilizan el tiempo de uso de internet y los servicios de impresión de cada cliente en la actualidad?</div><div class="pdf-a" id="pdf-q3_3"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Relación con Proveedores: ¿Cómo llevan el control de las cuentas por pagar y los pedidos pendientes con sus proveedores?</div><div class="pdf-a" id="pdf-q3_4"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Toma de Decisiones: ¿Cómo calculan hoy sus márgenes de ganancia mensuales y cuáles son sus productos más vendidos sin contar con herramientas estadísticas automáticas?</div><div class="pdf-a" id="pdf-q3_5"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Entrada de Información: ¿Cuál es la entrada de información al proceso (facturas, notas de pedido, datos de ciber)?</div><div class="pdf-a" id="pdf-q3_6"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">IV. DIAGNÓSTICO DE LA PROBLEMÁTICA</div>
+      <div class="pdf-q"><div class="pdf-q-title">Cuellos de Botella: ¿Cuánto tiempo promedio pierde el personal en el conteo manual de inventario o en la facturación manual en horas pico?</div><div class="pdf-a" id="pdf-q4_1"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Errores Identificados: ¿Se han presentado pérdidas económicas por errores en el cálculo de servicios de ciber o por fugas en el inventario de artículos pequeños?</div><div class="pdf-a" id="pdf-q4_2"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Dificultades de Registro: ¿Qué problemas enfrentan con relación al registro y seguimiento digital eficiente de sus activos?</div><div class="pdf-a" id="pdf-q4_3"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Limitaciones de Software: ¿Qué dificultades enfrentan al no poseer una herramienta que centralice la gestión administrativa y operativa en un solo lugar?</div><div class="pdf-a" id="pdf-q4_4"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">V. DIAGNÓSTICO PARA LA PROPUESTA (Viabilidad de Módulos)</div>
+      <div class="pdf-q"><div class="pdf-q-title">Módulo de Facturación e Inventario: ¿Desean que el sistema descuente automáticamente el stock al momento de vender un artículo escolar o tecnológico?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_1-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_1-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">Módulo de Cyber Control: ¿Es viable para su operatividad que el sistema bloquee o habilite las estaciones de trabajo de forma remota?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_2-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_2-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">Gestión de Proveedores: ¿Requieren un módulo que genere alertas automáticas cuando el stock de un producto llegue a un nivel crítico?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_3-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_3-no"></span> No</span></div>
+      <div class="pdf-q"><div class="pdf-q-title">Dashboard de Estadísticas: ¿Qué indicadores les gustaría visualizar en tiempo real (ventas diarias, horas de mayor afluencia, deudas)?</div><div class="pdf-a" id="pdf-q5_4"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Acceso a la Información: ¿Cómo debería ser el nivel de acceso (total para dueños, parcial para vendedores, limitado para proveedores)?</div><div class="pdf-a" id="pdf-q5_5"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Capacitación y Alfabetización: ¿Está el personal comprometido a participar en talleres de formación intensivos para el manejo de este nuevo sistema de gestión?</div><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_6-si"></span> Sí</span><span class="pdf-chk"><span class="pdf-chk-box" id="pdf-c5_6-no"></span> No</span></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">Procesos y Responsables</div>
+      <div class="pdf-q"><div class="pdf-q-title">Procesos Comerciales: ¿Cómo priorizan actualmente la atención entre la venta de productos físicos y la prestación de servicios tecnológicos?</div><div class="pdf-a" id="pdf-qpr_1"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Estructura de Ventas: ¿Qué porcentaje de sus transacciones diarias corresponde a servicios de "cyber" frente a la venta de suministros?</div><div class="pdf-a" id="pdf-qpr_2"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Personal Responsable: ¿Cómo se dividirían las responsabilidades de carga de datos en el sistema entre los dueños, el vendedor y el técnico?</div><div class="pdf-a" id="pdf-qpr_3"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">Sistemas Actuales</div>
+      <div class="pdf-q"><div class="pdf-q-title">Enliste y describa los sistemas informáticos que utilizan actualmente en sus procesos productivos y comerciales.</div><div class="pdf-a" id="pdf-qsa_1"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">Servicios Ofertados</div>
+      <div class="pdf-q"><div class="pdf-q-title">Venta de artículos varios:</div><div class="pdf-a" id="pdf-qso_1"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Cyber:</div><div class="pdf-a" id="pdf-qso_2"></div></div>
+      <div class="pdf-q"><div class="pdf-q-title">Asesoría Legal o documental:</div><div class="pdf-a" id="pdf-qso_3"></div></div>
+    </div>
+
+    <div class="pdf-sec">
+      <div class="pdf-sec-title">Requisitos del Sistema</div>
+      <div class="pdf-q"><div class="pdf-q-title">Describa en sus propias palabras los requisitos y necesidades que considera necesarios en el sistema informático que se desarrollará para su comunidad.</div><div class="pdf-a" id="pdf-qreq_1"></div></div>
+    </div>
+
+    <div class="pdf-footer">
+      <div class="pdf-footer-grid">
+        <div class="pdf-f-item" id="pdf-fnombre"><strong>Nombre del Encuestado:</strong><span></span></div>
+        <div class="pdf-f-item" id="pdf-ffecha"><strong>Fecha de la encuesta:</strong><span></span></div>
+        <div class="pdf-f-item" id="pdf-fencuestador"><strong>Encuestador:</strong><span></span></div>
+        <div class="pdf-f-item" id="pdf-ffirma"><strong>Firma del Encuestado:</strong><span></span></div>
+      </div>
+    </div>
+    <div class="pdf-note"><strong>Nota de Confidencialidad:</strong> Toda la información recopilada será tratada de manera confidencial y utilizada exclusivamente para el análisis y desarrollo del sistema.</div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.inp-textarea').forEach(textarea => {
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+      });
+    });
+
+    let surveyForm = null;
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      surveyForm = document.getElementById('survey-form');
+      const btn = document.getElementById('btn-export');
+
+      if (!surveyForm.checkValidity()) {
+        surveyForm.reportValidity();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Generando PDF...';
+
+      setTimeout(function() {
+        try {
+          var appWrap = document.querySelector('.app-wrap');
+          var btnExport = document.getElementById('btn-export');
+          
+          btnExport.style.display = 'none';
+          
+          var clone = appWrap.cloneNode(true);
+          
+          var cloneBtn = clone.querySelector('#btn-export');
+          if (cloneBtn) {
+            cloneBtn.style.display = 'none';
+          }
+          
+          var originalTextareas = appWrap.querySelectorAll('textarea');
+          var cloneTextareas = clone.querySelectorAll('textarea');
+          cloneTextareas.forEach(function(textarea, i) {
+            textarea.value = originalTextareas[i].value;
+            textarea.style.height = originalTextareas[i].style.height;
+          });
+          
+          var originalRadios = appWrap.querySelectorAll('input[type="radio"]');
+          var cloneRadios = clone.querySelectorAll('input[type="radio"]');
+          cloneRadios.forEach(function(radio, i) {
+            if (originalRadios[i].checked) {
+              radio.checked = true;
+            }
+          });
+          
+          var originalInputs = appWrap.querySelectorAll('input[type="text"], input[type="date"]');
+          var cloneInputs = clone.querySelectorAll('input[type="text"], input[type="date"]');
+          cloneInputs.forEach(function(input, i) {
+            input.value = originalInputs[i].value;
+          });
+          
+          clone.style.position = 'absolute';
+          clone.style.left = '-9999px';
+          clone.style.top = '0';
+          clone.style.width = appWrap.offsetWidth + 'px';
+          clone.style.margin = '0';
+          clone.style.boxShadow = 'none';
+          
+          document.body.appendChild(clone);
+          
+          setTimeout(function() {
+            html2canvas(clone, {
+              scale: 1.5,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              backgroundColor: '#ffffff'
+            }).then(function(canvas) {
+              document.body.removeChild(clone);
+              document.body.style.overflow = '';
+              btnExport.style.display = 'block';
+              
+              var imgData = canvas.toDataURL('image/png');
+              
+              var pdf = new jsPDF({
+                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+              });
+              
+              pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+              
+              pdf.save('Encuesta_Diagnostico.pdf');
+              resetButton(btn);
+            }).catch(function(err) {
+              if (document.body.contains(clone)) {
+                document.body.removeChild(clone);
+              }
+              btnExport.style.display = 'block';
+              console.error("Error:", err);
+              alert("Error al generar PDF. Por favor intenta de nuevo.");
+              resetButton(btn);
+            });
+          }, 200);
+        } catch (error) {
+          console.error("Error crítico:", error);
+          document.getElementById('btn-export').style.display = 'block';
+          alert("Ocurrió un error: " + error.message);
+          resetButton(btn);
+        }
+      }, 50);
+    }
+
+    function resetButton(btn) {
+      btn.disabled = false;
+      btn.textContent = '📄 Exportar a PDF';
+    }
+  </script>
+</body>
+</html>
